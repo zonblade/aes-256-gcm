@@ -254,11 +254,13 @@ mod tests {
     ///
     #[test]
     fn test_case_1() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        let client = Client::new(None);
-        let encrypted = client.encrypt("my thing", None);
-        let decrypted: String = client.decrypt(&encrypted.unwrap()).unwrap();
-        assert_eq!(decrypted, "my thing");
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            let client = Client::new(None);
+            let encrypted = client.encrypt("my thing", None);
+            let decrypted: String = client.decrypt(&encrypted.unwrap()).unwrap();
+            assert_eq!(decrypted, "my thing");
+        });
+
     }
 
     ///
@@ -267,20 +269,21 @@ mod tests {
     ///
     #[test]
     fn test_case_2() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-        struct TestCase2 {
-            pub name: String,
-        }
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+            struct TestCase2 {
+                pub name: String,
+            }
 
-        let client = Client::new(None);
-        let data = TestCase2 {
-            name: "my name".to_string(),
-        };
+            let client = Client::new(None);
+            let data = TestCase2 {
+                name: "my name".to_string(),
+            };
 
-        let encrypted = client.encrypt(&data, None);
-        let decrypted: TestCase2 = client.decrypt(&encrypted.unwrap()).unwrap();
-        assert_eq!(decrypted, data);
+            let encrypted = client.encrypt(&data, None);
+            let decrypted: TestCase2 = client.decrypt(&encrypted.unwrap()).unwrap();
+            assert_eq!(decrypted, data);
+        });
     }
 
     ///
@@ -289,17 +292,18 @@ mod tests {
     ///
     #[test]
     fn test_case_3() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        let client = Client::new(None);
-        let encrypted = client.encrypt("my thing", AesOptions::with_expire_second(3).build());
-        // sleep 5 second
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let decrypted = client.decrypt::<String>(&encrypted.unwrap());
-        if let Ok(data) = decrypted {
-            assert_eq!(data, "my thing");
-        } else {
-            assert!(false);
-        }
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            let client = Client::new(None);
+            let encrypted = client.encrypt("my thing", AesOptions::with_expire_second(3).build());
+            // sleep 5 second
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            let decrypted = client.decrypt::<String>(&encrypted.unwrap());
+            if let Ok(data) = decrypted {
+                assert_eq!(data, "my thing");
+            } else {
+                assert!(false);
+            }
+        });
     }
 
     ///
@@ -308,17 +312,18 @@ mod tests {
     ///
     #[test]
     fn test_case_4() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        let client = Client::new(None);
-        let encrypted = client.encrypt("my thing", AesOptions::with_expire_second(3).build());
-        // sleep 5 second
-        std::thread::sleep(std::time::Duration::from_secs(4));
-        let decrypted = client.decrypt::<String>(&encrypted.unwrap());
-        if let Err(e) = decrypted {
-            assert_eq!(e.code, AesErrorCode::Expired);
-        } else {
-            assert!(false);
-        }
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            let client = Client::new(None);
+            let encrypted = client.encrypt("my thing", AesOptions::with_expire_second(3).build());
+            // sleep 5 second
+            std::thread::sleep(std::time::Duration::from_secs(4));
+            let decrypted = client.decrypt::<String>(&encrypted.unwrap());
+            if let Err(e) = decrypted {
+                assert_eq!(e.code, AesErrorCode::Expired);
+            } else {
+                assert!(false);
+            }
+        });
     }
 
     ///
@@ -327,30 +332,31 @@ mod tests {
     ///
     #[test]
     fn test_case_5() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-        struct TestCase2 {
-            pub name: String,
-        }
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+            struct TestCase2 {
+                pub name: String,
+            }
 
-        let client = Client::new(None);
-        let data = TestCase2 {
-            name: "my name".to_string(),
-        };
-        let encrypted = client.encrypt(data, AesOptions::with_expire_second(3).build());
-        // sleep 5 second
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let decrypted = client.decrypt::<TestCase2>(&encrypted.unwrap());
-        if let Ok(data) = decrypted {
-            assert_eq!(
-                data,
-                TestCase2 {
-                    name: "my name".to_string()
-                }
-            );
-        } else {
-            assert!(false);
-        }
+            let client = Client::new(None);
+            let data = TestCase2 {
+                name: "my name".to_string(),
+            };
+            let encrypted = client.encrypt(data, AesOptions::with_expire_second(3).build());
+            // sleep 5 second
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            let decrypted = client.decrypt::<TestCase2>(&encrypted.unwrap());
+            if let Ok(data) = decrypted {
+                assert_eq!(
+                    data,
+                    TestCase2 {
+                        name: "my name".to_string()
+                    }
+                );
+            } else {
+                assert!(false);
+            }
+        });
     }
 
     ///
@@ -359,25 +365,26 @@ mod tests {
     ///
     #[test]
     fn test_case_6() {
-        std::env::set_var("AES_GCM_SECRET", "some key");
-        #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-        struct TestCase2 {
-            pub name: String,
-        }
+        temp_env::with_var("AES_GCM_SECRET", Some("some key"), || {
+            #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+            struct TestCase2 {
+                pub name: String,
+            }
 
-        let client = Client::new(None);
-        let data = TestCase2 {
-            name: "my name".to_string(),
-        };
-        let encrypted = client.encrypt(data, AesOptions::with_expire_second(3).build());
-        // sleep 5 second
-        std::thread::sleep(std::time::Duration::from_secs(4));
-        let decrypted = client.decrypt::<TestCase2>(&encrypted.unwrap());
-        if let Err(e) = decrypted {
-            assert_eq!(e.code, AesErrorCode::Expired);
-        } else {
-            assert!(false);
-        }
+            let client = Client::new(None);
+            let data = TestCase2 {
+                name: "my name".to_string(),
+            };
+            let encrypted = client.encrypt(data, AesOptions::with_expire_second(3).build());
+            // sleep 5 second
+            std::thread::sleep(std::time::Duration::from_secs(4));
+            let decrypted = client.decrypt::<TestCase2>(&encrypted.unwrap());
+            if let Err(e) = decrypted {
+                assert_eq!(e.code, AesErrorCode::Expired);
+            } else {
+                assert!(false);
+            }
+        });
     }
 
     ///

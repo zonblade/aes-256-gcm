@@ -6,4 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aes-256-gcm = {path = "../aes-256-gcm", version = "^0.1.1"}
+aes-256-gcm = {path = "../aes-256-gcm", version = "^1.1.2"}
